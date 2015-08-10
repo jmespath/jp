@@ -104,3 +104,56 @@ $ echo '{"foo": ["bar", "baz"]}' | jp -u foo
   "baz"
 ]
 ```
+
+## Examples
+
+If you're new to the JMESPath language, or just want to see what the language is
+capable of, you can check out the [JMESPath tutorial](http://jmespath.org/tutorial.html)
+as well as the [JMESPath examples](http://jmespath.org/examples.html), which contains
+a curated set of JMESPath examples.  But for now, here's a real world example.
+Let's say you wanted to see what the latest activity was with regard to the issue
+tracker for one of your github issues.  Here's a simple way to do this:
+
+```
+$ curl -s https://api.github.com/repos/golang/go/events | jp \
+"[?type=='IssuesEvent'].payload.\
+{Title: issue.title, URL: issue.url, User: issue.user.login, Event: action}"
+
+[
+  {
+    "Event": "opened",
+    "Title": "release: cherry pick changes for 1.5 to release branch",
+    "URL": "https://api.github.com/repos/golang/go/issues/12093",
+    "User": "adg"
+  },
+  {
+    "Event": "closed",
+    "Title": "fmt: x format verb for []byte fails in a recursive call to Fscanf from a scanln call in go1.5rc1",
+    "URL": "https://api.github.com/repos/golang/go/issues/12090",
+    "User": "hubslave"
+  },
+  {
+    "Event": "closed",
+    "Title": "doc: release notes recommend wrong version of NaCl",
+    "URL": "https://api.github.com/repos/golang/go/issues/12062",
+    "User": "davecheney"
+  },
+  {
+    "Event": "opened",
+    "Title": "cmd/godoc: show internal packages when explicitly requested",
+    "URL": "https://api.github.com/repos/golang/go/issues/12092",
+    "User": "jacobsa"
+  }
+]
+```
+
+Try it for your own repo, instead of ``/golang/go``, replace it with your own
+``/owner/repo`` value.  In words, this expression says:
+
+* For each element in the top level list, select only the elements where the
+``type`` key is equal to the string ``IssueEvent``
+* For each of those filtered elements select the ``payload`` hash.
+* Each each ``payload`` hash, we're going to create our own hash that has
+4 keys: ``Title``, ``URL``, ``User``, ``Event``.  The value for each of key
+is the result of evaluating these expressions in their respective order:
+``issue.title``, ``issue.url``, ``issue.user.login``, ``action``.
