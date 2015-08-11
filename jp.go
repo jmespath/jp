@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/codegangsta/cli"
-	"github.com/jmespath/go-jmespath"
+	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
 )
 
 func main() {
