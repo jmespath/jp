@@ -35,3 +35,10 @@
   run ./jp -f "$BATS_TMPDIR/input.json" "bax[expre]ssion"
   [ "$status" -eq 1 ]
 }
+
+@test "Large numbers are not printed with scientific notation" {
+  echo '{"foo": 47268765}' > "$BATS_TMPDIR/input.json"
+  run ./jp -f "$BATS_TMPDIR/input.json" "foo"
+  [ "$status" -eq 0 ]
+  [ "$output" == "47268765" ]
+}
