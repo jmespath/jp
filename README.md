@@ -105,6 +105,34 @@ $ echo '{"foo": ["bar", "baz"]}' | jp -u foo
 ]
 ```
 
+You can also use the ``-u/--unquoted`` option along with the
+[join](http://jmespath.org/specification.html#join) function to create a list
+of strings that can be piped into other POSIX text tools. For example:
+
+```
+$ echo '{"foo": {"bar": ["a", "b", "c"]}}' | jp foo.bar
+[
+  "a",
+  "b",
+  "c"
+]
+```
+
+Suppose we want to iterate over the 3 values in the list and
+run some bash code for each value.  We can do this by running:
+
+```
+$ for name in $(echo '{"foo": {"bar": ["a", "b", "c"]}}' | \
+  jp -u 'join(`"\n"`, foo.bar)');
+  do
+      echo "Processing: $name";
+  done
+Processing: a
+Processing: b
+Processing: c
+```
+
+
 ## Examples
 
 If you're new to the JMESPath language, or just want to see what the language is
