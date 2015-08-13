@@ -12,7 +12,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "jp"
-	app.Version = "0.0.1"
+	app.Version = "0.0.3"
 	app.Usage = "jp [<options>] <expression>"
 	app.Author = ""
 	app.Email = ""
