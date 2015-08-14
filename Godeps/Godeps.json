@@ -9,8 +9,8 @@
 		},
 		{
 			"ImportPath": "github.com/jmespath/go-jmespath",
-			"Comment": "0.1.0",
-			"Rev": "4fc9c086304a9794c7f5f3c570f4290ba18b79d0"
+			"Comment": "0.1.1",
+			"Rev": "769e1c1b866562e1f513d2d1f8e10bbebd765a08"
 		}
 	]
 }

@@ -133,7 +133,7 @@ func BenchmarkLexDeepNested50Pipe(b *testing.B) {
 	runLexBenchmark(b, deeplyNested50Pipe)
 }
 
-func BenchmarLexDeepNested50Index(b *testing.B) {
+func BenchmarkLexDeepNested50Index(b *testing.B) {
 	runLexBenchmark(b, deeplyNested50Index)
 }
 

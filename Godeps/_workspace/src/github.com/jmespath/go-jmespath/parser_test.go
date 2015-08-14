@@ -51,7 +51,7 @@ func BenchmarkParseDeepNested50Pipe(b *testing.B) {
 	runParseBenchmark(b, deeplyNested50Pipe)
 }
 
-func BenchmarParseDeepNested50Index(b *testing.B) {
+func BenchmarkParseDeepNested50Index(b *testing.B) {
 	runParseBenchmark(b, deeplyNested50Index)
 }
 

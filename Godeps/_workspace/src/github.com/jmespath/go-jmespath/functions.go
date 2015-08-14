@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 type jpFunction func(arguments []interface{}) (interface{}, error)
@@ -398,7 +399,7 @@ func jpfAbs(arguments []interface{}) (interface{}, error) {
 func jpfLength(arguments []interface{}) (interface{}, error) {
 	arg := arguments[0]
 	if c, ok := arg.(string); ok {
-		return float64(len(c)), nil
+		return float64(utf8.RuneCountInString(c)), nil
 	} else if c, ok := arg.([]interface{}); ok {
 		return float64(len(c)), nil
 	} else if c, ok := arg.(map[string]interface{}); ok {
