@@ -42,3 +42,10 @@
   [ "$status" -eq 0 ]
   [ "$output" == "47268765" ]
 }
+
+@test "Can accept expression from file" {
+  echo 'foo.bar' > "$BATS_TMPDIR/expr"
+  echo '{"foo": {"bar": "baz"}}' > "$BATS_TMPDIR/input.json"
+  run ./jp -u -f "$BATS_TMPDIR/input.json" -e "$BATS_TMPDIR/expr"
+  [ "$output" == "baz" ]
+}

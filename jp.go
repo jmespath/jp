@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/codegangsta/cli"
@@ -21,6 +22,10 @@ func main() {
 			Name:  "filename, f",
 			Usage: "Read input JSON from a file instead of stdin.",
 		},
+		cli.StringFlag{
+			Name:  "expr-file, e",
+			Usage: "Read JMESPath expression from the specified file.",
+		},
 		cli.BoolFlag{
 			Name:   "unquoted, u",
 			Usage:  "If the final result is a string, it will be printed without quotes.",
@@ -37,11 +42,21 @@ func runMainAndExit(c *cli.Context) {
 }
 
 func runMain(c *cli.Context) int {
-	if len(c.Args()) == 0 {
-		fmt.Fprintf(os.Stderr, "Must provide at least one argument.\n")
-		return 255
+	var expression string
+	if c.String("expr-file") != "" {
+		byteExpr, err := ioutil.ReadFile(c.String("expr-file"))
+		expression = string(byteExpr)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error opening expression file: %s\n", err)
+			return 1
+		}
+	} else {
+		if len(c.Args()) == 0 {
+			fmt.Fprintf(os.Stderr, "Must provide at least one argument.\n")
+			return 255
+		}
+		expression = c.Args()[0]
 	}
-	expression := c.Args()[0]
 	var input interface{}
 	var jsonParser *json.Decoder
 	if c.String("filename") != "" {
