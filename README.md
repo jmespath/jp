@@ -91,7 +91,16 @@ https://api.github.com/users/robpike
 ```
 
 If this is a common enough occurance for you, you can set the ``JP_UNQUOTED`` environment
-variable to make this the default behavior.   Also keep in mind that this behavior
+variable to make this the default behavior:
+
+```
+$ export JP_UNQUOTED=true 
+$ curl -s https://api.github.com/repos/golang/go/events | jp --unquoted [0].actor.url
+https://api.github.com/users/robpike
+```
+
+
+Also keep in mind that this behavior
 only applies if the result of evaluating the JMESPath expression is a string:
 
 ```
@@ -185,3 +194,29 @@ Try it for your own repo, instead of ``/golang/go``, replace it with your own
 4 keys: ``Title``, ``URL``, ``User``, ``Event``.  The value for each of key
 is the result of evaluating these expressions in their respective order:
 ``issue.title``, ``issue.url``, ``issue.user.login``, ``action``.
+
+## Testing
+
+The parsing and evaluation of JMESPath expression is done in the
+go-jmespath library, which is a dependencty of this project.  ``go-jmespath``
+has extensive testing to ensure it is parsing and evaluating JMESPath
+expressions correctly.
+
+This repo also include CLI specific test that verify the command line
+options and output work as intended.  To run these ``jp`` specific
+tests, you can run ``make test``:
+
+```
+$ make test
+test/vendor/bats/libexec/bats test/cases
+ ✓ Has valid help output
+ ✓ Can display version
+ ✓ Can search basic expression
+ ✓ Can search subexpr expression
+ ✓ Can read input from file
+ ✓ Can print result unquoted
+....
+
+X tests, 0 failures
+```
+
