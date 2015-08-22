@@ -3,12 +3,18 @@ jp
 
 The ``jp`` command is a command line interface to
 [JMESPath](http://jmespath.org), an expression
-language for manipulating JSON.
+language for manipulating JSON:
+
+```
+$ echo '{"foo": {"bar": ["a", "b", "c"]}}' | jp foo.bar[1]
+"b"
+```
 
 
 # Installing
 
-Check the Release page to download the latest ``jp`` executable.
+Check the [Release page](https://github.com/jmespath/jp/releases)
+ to download the latest ``jp`` executable.
 If you have a Go environment installed you can also run:
 ``go get -u github.com/jmespath/jp`` to get the latest version
 of jmespath.  If you have the repo checked out locally you can also
@@ -20,6 +26,26 @@ cd jp
 go build
 ./jp --help
 ```
+
+And finally, if you have a go environment setup, but don't
+have a workspace/GOPATH configured, you can just run
+``scripts/build-self-contained.sh`` and it will build the
+``jp`` executable for you:
+
+```
+git clone git://github.com/jmespath/jp
+cd jp
+scripts/build-self-contained.sh
+./jp --help
+```
+
+## Cross platform binaries
+
+If you have a go environment setup as well as docker configured,
+you can build cross platform binaries by running ``scripts/docker-build.sh``.
+This will put executables in the ``build/`` directory and each
+executable will be named ``jp-<platform>``, e.g
+``jp-darwin-amd64``,  ``jp-linux-386``, etc.
 
 
 # Usage
@@ -56,7 +82,7 @@ $ jp -f /tmp/input.json foo.bar
 
 ## Unquoted Output
 
-Notice the output of the above command is ``"baz"``, that is,
+[[Notice]] the output of the above command is ``"baz"``, that is,
 a double quote ``"``, followed by baz, followed by another
 a final double quote.  This can be problematic if you're
 trying to use this with other commands that just want
@@ -219,4 +245,3 @@ test/vendor/bats/libexec/bats test/cases
 
 X tests, 0 failures
 ```
-
