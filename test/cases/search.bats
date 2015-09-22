@@ -49,3 +49,14 @@
   run ./jp -u -f "$BATS_TMPDIR/input.json" -e "$BATS_TMPDIR/expr"
   [ "$output" == "baz" ]
 }
+
+@test "Can pretty print expr AST" {
+  run ./jp --ast "foo"
+  expected='
+ASTField {
+  value: "foo"
+}'
+  echo "$output"
+  echo "$expected"
+  [ "$output" == "$expected" ]
+}

@@ -31,6 +31,10 @@ func main() {
 			Usage:  "If the final result is a string, it will be printed without quotes.",
 			EnvVar: "JP_UNQUOTED",
 		},
+		cli.BoolFlag{
+			Name:  "ast",
+			Usage: "Only print the AST of the parsed expression.  Do not rely on this output, only useful for debugging purposes.",
+		},
 	}
 	app.Action = runMainAndExit
 
@@ -41,29 +45,47 @@ func runMainAndExit(c *cli.Context) {
 	os.Exit(runMain(c))
 }
 
+func errMsg(msg string, a ...interface{}) int {
+	fmt.Fprintf(os.Stderr, msg, a...)
+	fmt.Fprintln(os.Stderr)
+	return 1
+}
+
 func runMain(c *cli.Context) int {
 	var expression string
 	if c.String("expr-file") != "" {
 		byteExpr, err := ioutil.ReadFile(c.String("expr-file"))
 		expression = string(byteExpr)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error opening expression file: %s\n", err)
-			return 1
+			return errMsg("Error opening expression file: %s", err)
 		}
 	} else {
 		if len(c.Args()) == 0 {
-			fmt.Fprintf(os.Stderr, "Must provide at least one argument.\n")
-			return 255
+			return errMsg("Must provide at least one argument.")
 		}
 		expression = c.Args()[0]
+	}
+	if c.Bool("ast") {
+		parser := jmespath.NewParser()
+		parsed, err := parser.Parse(expression)
+		if err != nil {
+			if syntaxError, ok := err.(jmespath.SyntaxError); ok {
+				return errMsg("%s\n%s\n",
+					syntaxError,
+					syntaxError.HighlightLocation())
+			}
+			return errMsg("%s", err)
+		}
+		fmt.Println("")
+		fmt.Printf("%s\n", parsed)
+		return 0
 	}
 	var input interface{}
 	var jsonParser *json.Decoder
 	if c.String("filename") != "" {
 		f, err := os.Open(c.String("filename"))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error opening input file: %s\n", err)
-			return 1
+			return errMsg("Error opening input file: %s", err)
 		}
 		jsonParser = json.NewDecoder(f)
 
@@ -72,14 +94,17 @@ func runMain(c *cli.Context) int {
 	}
 	jsonParser.UseNumber()
 	if err := jsonParser.Decode(&input); err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing input json: %s\n", err)
+		errMsg("Error parsing input json: %s\n", err)
 		return 2
 	}
 	result, err := jmespath.Search(expression, input)
 	if err != nil {
-		fmt.Fprintf(os.Stderr,
-			"Error evaluating JMESPath expression: %s\n", err)
-		return 1
+		if syntaxError, ok := err.(jmespath.SyntaxError); ok {
+			return errMsg("%s\n%s\n",
+				syntaxError,
+				syntaxError.HighlightLocation())
+		}
+		return errMsg("Error evaluating JMESPath expression: %s", err)
 	}
 	converted, isString := result.(string)
 	if c.Bool("unquoted") && isString {
@@ -87,8 +112,7 @@ func runMain(c *cli.Context) int {
 	} else {
 		toJSON, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
-			fmt.Fprintf(os.Stderr,
-				"Error marshalling result to JSON: %s\n", err)
+			errMsg("Error marshalling result to JSON: %s\n", err)
 			return 3
 		}
 		os.Stdout.Write(toJSON)
