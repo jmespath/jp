@@ -2,6 +2,7 @@ package jmespath
 
 import "github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
 
+// Fuzz will fuzz test the JMESPath parser.
 func Fuzz(data []byte) int {
 	p := jmespath.NewParser()
 	_, err := p.Parse(string(data))

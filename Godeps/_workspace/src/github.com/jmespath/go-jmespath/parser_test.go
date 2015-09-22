@@ -35,6 +35,63 @@ func TestParsingErrors(t *testing.T) {
 	}
 }
 
+var prettyPrinted = `ASTProjection {
+  children: {
+    ASTField {
+      value: "foo"
+    }
+    ASTSubexpression {
+      children: {
+        ASTSubexpression {
+          children: {
+            ASTField {
+              value: "bar"
+            }
+            ASTField {
+              value: "baz"
+            }
+        }
+        ASTField {
+          value: "qux"
+        }
+    }
+}
+`
+
+var prettyPrintedCompNode = `ASTFilterProjection {
+  children: {
+    ASTField {
+      value: "a"
+    }
+    ASTIdentity {
+    }
+    ASTComparator {
+      value: tLTE
+      children: {
+        ASTField {
+          value: "b"
+        }
+        ASTField {
+          value: "c"
+        }
+    }
+}
+`
+
+func TestPrettyPrintedAST(t *testing.T) {
+	assert := assert.New(t)
+	parser := NewParser()
+	parsed, _ := parser.Parse("foo[*].bar.baz.qux")
+	assert.Equal(parsed.PrettyPrint(0), prettyPrinted)
+}
+
+func TestPrettyPrintedCompNode(t *testing.T) {
+	assert := assert.New(t)
+	parser := NewParser()
+	parsed, _ := parser.Parse("a[?b<=c]")
+	assert.Equal(parsed.PrettyPrint(0), prettyPrintedCompNode)
+}
+
 func BenchmarkParseIdentifier(b *testing.B) {
 	runParseBenchmark(b, exprIdentifier)
 }

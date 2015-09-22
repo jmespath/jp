@@ -2,6 +2,9 @@ package jmespath
 
 import (
 	"errors"
+	"reflect"
+	"unicode"
+	"unicode/utf8"
 )
 
 /* This is a tree based interpreter.  It walks the AST and directly
@@ -77,7 +80,7 @@ func (intr *treeInterpreter) Execute(node ASTNode, value interface{}) (interface
 			key := node.value.(string)
 			return m[key], nil
 		}
-		return nil, nil
+		return intr.fieldFromStruct(node.value.(string), value)
 	case ASTFilterProjection:
 		left, err := intr.Execute(node.children[0], value)
 		if err != nil {
@@ -134,6 +137,19 @@ func (intr *treeInterpreter) Execute(node ASTNode, value interface{}) (interface
 			}
 			if index < len(sliceType) && index >= 0 {
 				return sliceType[index], nil
+			}
+			return nil, nil
+		}
+		// Otherwise try via reflection.
+		rv := reflect.ValueOf(value)
+		if rv.Kind() == reflect.Slice {
+			index := node.value.(int)
+			if index < 0 {
+				index += rv.Len()
+			}
+			if index < rv.Len() && index >= 0 {
+				v := rv.Index(index)
+				return v.Interface(), nil
 			}
 		}
 		return nil, nil
@@ -257,4 +273,26 @@ func (intr *treeInterpreter) Execute(node ASTNode, value interface{}) (interface
 		return collected, nil
 	}
 	return nil, errors.New("unknown error in AST evaluation")
+}
+
+func (intr *treeInterpreter) fieldFromStruct(key string, value interface{}) (interface{}, error) {
+	rv := reflect.ValueOf(value)
+	first, n := utf8.DecodeRuneInString(key)
+	fieldName := string(unicode.ToUpper(first)) + key[n:]
+	if rv.Kind() == reflect.Struct {
+		v := rv.FieldByName(fieldName)
+		if !v.IsValid() {
+			return nil, nil
+		}
+		return v.Interface(), nil
+	} else if rv.Kind() == reflect.Ptr {
+		// Handle multiple levels of indirection?
+		rv = rv.Elem()
+		v := rv.FieldByName(fieldName)
+		if !v.IsValid() {
+			return nil, nil
+		}
+		return v.Interface(), nil
+	}
+	return nil, nil
 }
