@@ -13,8 +13,21 @@ $ echo '{"foo": {"bar": ["a", "b", "c"]}}' | jp foo.bar[1]
 
 # Installing
 
+If you're a Mac user, you can install via homebrew from the JMESPath
+Homebrew tap:
+
+```
+brew tap jmespath/jmespath
+brew install jp
+```
+
+You can download prebuilt binaries if you prefer.
 Check the [Release page](https://github.com/jmespath/jp/releases)
- to download the latest ``jp`` executable.
+ to download the latest ``jp`` executable.  There are binaries
+available for Windows, Linux, Mac, FreeBSD.
+
+## Building from Source
+
 If you have a Go environment installed you can also run:
 ``go get -u github.com/jmespath/jp`` to get the latest version
 of jmespath.  If you have the repo checked out locally you can also
@@ -120,7 +133,7 @@ If this is a common enough occurance for you, you can set the ``JP_UNQUOTED`` en
 variable to make this the default behavior:
 
 ```
-$ export JP_UNQUOTED=true 
+$ export JP_UNQUOTED=true
 $ curl -s https://api.github.com/repos/golang/go/events | jp --unquoted [0].actor.url
 https://api.github.com/users/robpike
 ```
