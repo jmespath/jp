@@ -4,9 +4,9 @@ package jmespath
 
 import "fmt"
 
-const _tokType_name = "tUnknowntStartDottFiltertFlattentLparentRparentLbrackettRbrackettLbracetRbracetOrtPipetNumbertUnquotedIdentifiertQuotedIdentifiertCommatColontLTtLTEtGTtGTEtEQtNEtJSONLiteraltStringLiteraltCurrenttExpreftEOF"
+const _tokType_name = "tUnknowntStartDottFiltertFlattentLparentRparentLbrackettRbrackettLbracetRbracetOrtPipetNumbertUnquotedIdentifiertQuotedIdentifiertCommatColontLTtLTEtGTtGTEtEQtNEtJSONLiteraltStringLiteraltCurrenttExpreftAndtNottEOF"
 
-var _tokType_index = [...]uint8{0, 8, 13, 17, 24, 32, 39, 46, 55, 64, 71, 78, 81, 86, 93, 112, 129, 135, 141, 144, 148, 151, 155, 158, 161, 173, 187, 195, 202, 206}
+var _tokType_index = [...]uint8{0, 8, 13, 17, 24, 32, 39, 46, 55, 64, 71, 78, 81, 86, 93, 112, 129, 135, 141, 144, 148, 151, 155, 158, 161, 173, 187, 195, 202, 206, 210, 214}
 
 func (i tokType) String() string {
 	if i < 0 || i >= tokType(len(_tokType_index)-1) {

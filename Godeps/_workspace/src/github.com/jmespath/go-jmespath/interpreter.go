@@ -196,6 +196,24 @@ func (intr *treeInterpreter) Execute(node ASTNode, value interface{}) (interface
 			}
 		}
 		return matched, nil
+	case ASTAndExpression:
+		matched, err := intr.Execute(node.children[0], value)
+		if err != nil {
+			return nil, err
+		}
+		if isFalse(matched) {
+			return matched, nil
+		}
+		return intr.Execute(node.children[1], value)
+	case ASTNotExpression:
+		matched, err := intr.Execute(node.children[0], value)
+		if err != nil {
+			return nil, err
+		}
+		if isFalse(matched) {
+			return true, nil
+		}
+		return false, nil
 	case ASTPipe:
 		result := value
 		var err error
@@ -272,7 +290,7 @@ func (intr *treeInterpreter) Execute(node ASTNode, value interface{}) (interface
 		}
 		return collected, nil
 	}
-	return nil, errors.New("unknown error in AST evaluation")
+	return nil, errors.New("Unknown AST node: " + node.nodeType.String())
 }
 
 func (intr *treeInterpreter) fieldFromStruct(key string, value interface{}) (interface{}, error) {
