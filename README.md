@@ -41,8 +41,8 @@ scripts/build-self-contained.sh
 
 ## Cross platform binaries
 
-If you have a go environment setup as well as docker configured,
-you can build cross platform binaries by running ``scripts/docker-build.sh``.
+If you have a go 1.5 environment setup, you can build cross platform binaries
+by running ``scripts/build-all-platforms.sh``.
 This will put executables in the ``build/`` directory and each
 executable will be named ``jp-<platform>``, e.g
 ``jp-darwin-amd64``,  ``jp-linux-386``, etc.
