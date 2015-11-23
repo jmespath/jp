@@ -92,7 +92,6 @@ func runMain(c *cli.Context) int {
 	} else {
 		jsonParser = json.NewDecoder(os.Stdin)
 	}
-	jsonParser.UseNumber()
 	if err := jsonParser.Decode(&input); err != nil {
 		errMsg("Error parsing input json: %s\n", err)
 		return 2
