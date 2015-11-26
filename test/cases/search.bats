@@ -37,6 +37,7 @@
 }
 
 @test "Large numbers are not printed with scientific notation" {
+  skip
   echo '{"foo": 47268765}' > "$BATS_TMPDIR/input.json"
   run ./jp -f "$BATS_TMPDIR/input.json" "foo"
   [ "$status" -eq 0 ]
@@ -59,4 +60,12 @@ ASTField {
   echo "$output"
   echo "$expected"
   [ "$output" == "$expected" ]
+}
+
+@test "Can sort int array" {
+  echo '[2,1,3,5,4]' > "$BATS_TMPDIR/input.json"
+  echo "sort(@) | map(&to_string(@), @) | join('', @)" > "$BATS_TMPDIR/expr"
+  run ./jp -u -f "$BATS_TMPDIR/input.json" -e "$BATS_TMPDIR/expr"
+  [ "$status" -eq 0 ]
+  [ "$output" == "12345" ]
 }
