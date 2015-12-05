@@ -21,7 +21,7 @@ new-release:
 	scripts/bump-version $(JP_VERSION)
 	git add jp.go && git commit -m "Bumping version to $(JP_VERSION)"
 	git tag -s -m "Tagging $(JP_VERSION) release"
-	scripts/build-all-platforms.sh
-	scripts/sign-all.sh
+	scripts/build-all-platforms
+	scripts/sign-all
 
 .PHONY: help test

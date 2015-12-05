@@ -42,20 +42,20 @@ go build
 
 And finally, if you have a go environment setup, but don't
 have a workspace/GOPATH configured, you can just run
-``scripts/build-self-contained.sh`` and it will build the
+``scripts/build-self-contained`` and it will build the
 ``jp`` executable for you:
 
 ```
 git clone git://github.com/jmespath/jp
 cd jp
-scripts/build-self-contained.sh
+scripts/build-self-contained
 ./jp --help
 ```
 
 ## Cross platform binaries
 
 If you have a go 1.5 environment setup, you can build cross platform binaries
-by running ``scripts/build-all-platforms.sh``.
+by running ``scripts/build-all-platforms``.
 This will put executables in the ``build/`` directory and each
 executable will be named ``jp-<platform>``, e.g
 ``jp-darwin-amd64``,  ``jp-linux-386``, etc.
