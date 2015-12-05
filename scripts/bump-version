@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+import sys
+import re
+import os
+
+version_line_re = re.compile(r'^const version = "\d+\.\d+\.\d+"')
+
+
+if len(sys.argv) == 1 or sys.argv[1] == '':
+    print "Must provide jp version to bump to."
+    sys.exit(1)
+
+new_version = sys.argv[1]
+source_file = os.path.join(
+    os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))),
+    'jp.go')
+
+assert os.path.isfile(source_file)
+
+with open(source_file, 'r') as f:
+    contents = f.readlines()
+for i, line in enumerate(contents):
+    if version_line_re.search(line) is not None:
+        contents[i] = 'const version = "%s"\n' % new_version
+        break
+else:
+    sys.stderr.write("Could not find version string in %s\n" % source_file)
+
+with open(source_file, 'w') as f:
+    for line in contents:
+        f.write(line)
