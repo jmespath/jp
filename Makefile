@@ -10,13 +10,16 @@ test:
 # This will create/tag a new release locally, but not push anything.
 # The workflow for a new release is:
 #
-# $ make new-release JP_VERSION=1.0.0
+# 1. $ make new-release JP_VERSION=1.0.0
 # < you'll get prompted for a few things >
-# $ git push origin master --tags
-# Go to github and create a release
 #
-# Right now, the last step isn't automated.  You still
-# have to manually upload the release assets from build/.
+
+# 2. $ git push origin master --tags
+#
+#
+# 3. Go to github and create a release
+#    Right now, the last step isn't automated.  You still
+#    have to manually upload the release assets from build/.
 new-release:
 	scripts/bump-version $(JP_VERSION)
 	git add jp.go && git commit -m "Bumping version to $(JP_VERSION)"
