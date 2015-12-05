@@ -7,7 +7,7 @@ version_line_re = re.compile(r'^const version = "\d+\.\d+\.\d+"')
 
 
 if len(sys.argv) == 1 or sys.argv[1] == '':
-    print "Must provide jp version to bump to."
+    print "Must provide jp version to bump to. (make new-release JP_VERSION=1.0.0)"
     sys.exit(1)
 
 new_version = sys.argv[1]
