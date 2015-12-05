@@ -240,16 +240,22 @@ in quotes, as shown in the example above.
 ## Testing
 
 The parsing and evaluation of JMESPath expression is done in the
-go-jmespath library, which is a dependencty of this project.  ``go-jmespath``
+go-jmespath library, which is a dependency of this project.  ``go-jmespath``
 has extensive testing to ensure it is parsing and evaluating JMESPath
 expressions correctly.
 
+To ensure that there are no regressions between `go-imespath` and `jp`,
+the entire suite of [JMESPath compliance tests](https://github.com/jmespath/jmespath.test)
+are run against the `jp` executable.
+
 This repo also include CLI specific test that verify the command line
-options and output work as intended.  To run these ``jp`` specific
-tests, you can run ``make test``:
+options and output work as intended.
+
+You can run all of these tests for `jp` by running `make test`:
 
 ```
 $ make test
+# CLI specific test cases.
 test/vendor/bats/libexec/bats test/cases
  ✓ Has valid help output
  ✓ Can display version
@@ -257,7 +263,23 @@ test/vendor/bats/libexec/bats test/cases
  ✓ Can search subexpr expression
  ✓ Can read input from file
  ✓ Can print result unquoted
-....
+ ✓ Bad JMESPath expression has non zero rc
+ - Large numbers are not printed with scientific notation (skipped)
+ ✓ Can accept expression from file
+ ✓ Can pretty print expr AST
+ ✓ Can sort int array
 
-X tests, 0 failures
+X tests, 0 failures, 1 skipped
+# JMESPath compliance tests, using the jp-compliance
+# runner from github.com/jmespath/jmespath.test
+test/jp-compliance -d test/compliance/ -e ./jp
+............................................................
+............................................................
+............................................................
+............................................................
+............................................................
+............................................................
+............................................................
+............................................................
+OK
 ```
