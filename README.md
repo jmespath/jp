@@ -234,6 +234,9 @@ Try it for your own repo, instead of ``/golang/go``, replace it with your own
 is the result of evaluating these expressions in their respective order:
 ``issue.title``, ``issue.url``, ``issue.user.login``, ``action``.
 
+Ensure that if your expression has spaces you surround the expression
+in quotes, as shown in the example above.
+
 ## Testing
 
 The parsing and evaluation of JMESPath expression is done in the
