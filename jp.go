@@ -10,10 +10,12 @@ import (
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
 )
 
+const version = "0.1.1"
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "jp"
-	app.Version = "0.1.1"
+	app.Version = version
 	app.Usage = "jp [<options>] <expression>"
 	app.Author = ""
 	app.Email = ""
