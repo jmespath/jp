@@ -22,7 +22,7 @@ test:
 #    have to manually upload the release assets from build/.
 new-release:
 	scripts/bump-version $(JP_VERSION)
-	git add jp.go && git commit -m "Bumping version to $(JP_VERSION)"
+	git add jp.go && git commit -m "Bumping version to $(JP_VERSION)" $(JP_VERSION)
 	git tag -s -m "Tagging $(JP_VERSION) release"
 	scripts/build-all-platforms
 	scripts/sign-all
