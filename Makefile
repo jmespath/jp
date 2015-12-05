@@ -5,7 +5,11 @@ help:
 	@echo "  test     to run all the tests."
 
 test:
+	# CLI specific test cases.
 	test/vendor/bats/libexec/bats test/cases
+	# JMESPath compliance tests, using the jp-compliance
+	# runner from github.com/jmespath/jmespath.test
+	test/jp-compliance -d test/compliance/ -e ./jp
 
 # This will create/tag a new release locally, but not push anything.
 # The workflow for a new release is:
