@@ -69,3 +69,17 @@ ASTField {
   [ "$status" -eq 0 ]
   [ "$output" == "12345" ]
 }
+
+@test "Report error in JSON with no newlines" {
+  echo -n '{"foo": bar}' > "$BATS_TMPDIR/input.json"
+  run ./jp -f "$BATS_TMPDIR/input.json" '@'
+  [ "$status" -eq 2 ]
+  [ "$output" == "Error parsing input json: invalid character 'b' looking for beginning of value (line: 1, char: 9)" ]
+}
+
+@test "Report error in JSON with newlines" {
+  echo -en '{"foo": \nbar}' > "$BATS_TMPDIR/input.json"
+  run ./jp -f "$BATS_TMPDIR/input.json" '@'
+  [ "$status" -eq 2 ]
+  [ "$output" == "Error parsing input json: invalid character 'b' looking for beginning of value (line: 2, char: 1)" ]
+}

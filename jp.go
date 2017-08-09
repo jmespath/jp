@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
+	"sort"
 
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
@@ -83,19 +85,28 @@ func runMain(c *cli.Context) int {
 		return 0
 	}
 	var input interface{}
-	var jsonParser *json.Decoder
+	var inputStream io.Reader
 	if c.String("filename") != "" {
 		f, err := os.Open(c.String("filename"))
 		if err != nil {
 			return errMsg("Error opening input file: %s", err)
 		}
-		jsonParser = json.NewDecoder(f)
+		inputStream = f
 
 	} else {
-		jsonParser = json.NewDecoder(os.Stdin)
+		inputStream = os.Stdin
 	}
+	newlineNumberReader := NewLineNumberReader(inputStream)
+	jsonParser := json.NewDecoder(newlineNumberReader)
 	if err := jsonParser.Decode(&input); err != nil {
-		errMsg("Error parsing input json: %s\n", err)
+		syntaxError, ok := err.(*json.SyntaxError)
+		if ok && syntaxError.Offset == int64(int(syntaxError.Offset)) {
+			line, char := newlineNumberReader.ConvertOffset(int(syntaxError.Offset))
+			errMsg("Error parsing input json: %s (line: %d, char: %d)\n",
+				syntaxError, line, char)
+		} else {
+			errMsg("Error parsing input json: %s", err)
+		}
 		return 2
 	}
 	result, err := jmespath.Search(expression, input)
@@ -120,4 +131,48 @@ func runMain(c *cli.Context) int {
 	}
 	os.Stdout.WriteString("\n")
 	return 0
+}
+
+type LineNumberReader struct {
+	actualReader     io.Reader
+	newlinePositions []int
+	bytesRead        int
+}
+
+func NewLineNumberReader(actualReader io.Reader) *LineNumberReader {
+	return &LineNumberReader{
+		actualReader: actualReader,
+	}
+}
+
+func (lnr *LineNumberReader) Read(p []byte) (n int, err error) {
+	n, err = lnr.actualReader.Read(p)
+
+	if err != nil || n == 0 {
+		return
+	}
+
+	for i, v := range p {
+		if i >= n {
+			return
+		}
+
+		if v == '\n' {
+			// add 1 so we record the position of the first character, not the '\n'
+			lnr.newlinePositions = append(lnr.newlinePositions, lnr.bytesRead+i+1)
+		}
+	}
+
+	lnr.bytesRead = lnr.bytesRead + n
+	return
+}
+
+func (lnr *LineNumberReader) ConvertOffset(offset int) (linePos int, charPos int) {
+	index := sort.SearchInts(lnr.newlinePositions, offset)
+	// Humans are 1 indexed...
+	if index == 0 {
+		return 1, offset
+	} else {
+		return index + 1, offset - lnr.newlinePositions[index-1]
+	}
 }
