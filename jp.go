@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
+	"github.com/codegangsta/cli"
+	"github.com/fatih/color"
+	"github.com/jmespath/go-jmespath"
+	"github.com/nwidger/jsoncolor"
 )
 
 const version = "0.1.2"
@@ -27,6 +29,11 @@ func main() {
 		cli.StringFlag{
 			Name:  "expr-file, e",
 			Usage: "Read JMESPath expression from the specified file.",
+		},
+		cli.StringFlag{
+			Name:  "color, c",
+			Value: "auto",
+			Usage: "Change the color setting (none, auto, always). auto is based on whether output is a tty.",
 		},
 		cli.BoolFlag{
 			Name:   "unquoted, u",
@@ -66,6 +73,18 @@ func runMain(c *cli.Context) int {
 			return errMsg("Must provide at least one argument.")
 		}
 		expression = c.Args()[0]
+	}
+	// Unfortunately, there's a global setting in the underlying library
+	// which we have to toggle here...
+	switch c.String("color") {
+	case "always":
+		color.NoColor = false
+	case "auto":
+		// this is the default in the library
+	case "never":
+		color.NoColor = true
+	default:
+		return errMsg("Invalid color specification. Must use always/auto/never")
 	}
 	if c.Bool("ast") {
 		parser := jmespath.NewParser()
@@ -111,7 +130,14 @@ func runMain(c *cli.Context) int {
 	if c.Bool("unquoted") && isString {
 		os.Stdout.WriteString(converted)
 	} else {
-		toJSON, err := json.MarshalIndent(result, "", "  ")
+		var toJSON []byte
+		var err error
+		if color.NoColor {
+			// avoid doing the extra processing in jsoncolor
+			toJSON, err = json.MarshalIndent(result, "", "  ")
+		} else {
+			toJSON, err = jsoncolor.MarshalIndent(result, "", "  ")
+		}
 		if err != nil {
 			errMsg("Error marshalling result to JSON: %s\n", err)
 			return 3

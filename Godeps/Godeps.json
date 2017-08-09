@@ -1,6 +1,7 @@
 {
 	"ImportPath": "github.com/jmespath/jp",
 	"GoVersion": "go1.4.2",
+	"GodepVersion": "v79",
 	"Deps": [
 		{
 			"ImportPath": "github.com/codegangsta/cli",
@@ -8,9 +9,32 @@
 			"Rev": "6086d7927ec35315964d9fea46df6c04e6d697c1"
 		},
 		{
+			"ImportPath": "github.com/fatih/color",
+			"Comment": "v1.5.0-4-g67c513e",
+			"Rev": "67c513e5729f918f5e69786686770c27141a4490"
+		},
+		{
 			"ImportPath": "github.com/jmespath/go-jmespath",
 			"Comment": "0.2.0",
 			"Rev": "bbaa0945d0cfe535ca7ce710b888e230d525dc63"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Comment": "v0.0.9-2-g6c0fd4a",
+			"Rev": "6c0fd4aa6ec5818d5e3ea9e03ae436972a6c5a9a"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-isatty",
+			"Comment": "v0.0.2",
+			"Rev": "fc9e8d8ef48496124e79ae0df75490096eccf6fe"
+		},
+		{
+			"ImportPath": "github.com/nwidger/jsoncolor",
+			"Rev": "75a6de4340e59be95f0884b9cebdda246e0fdf40"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "b0e0dd72976dc482b6cb37c5640440f876ac1907"
 		}
 	]
 }
