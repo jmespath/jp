@@ -14,6 +14,17 @@
   [ "$output" == "\"bar\"" ]
 }
 
+@test "Ignores subsequent data" {
+  output=$(echo '{"foo": "bar"}blah' | ./jp foo)
+  [ "$output" == "\"bar\"" ]
+}
+
+@test "Processes subsequent data in stream mode" {
+  output=$(echo '{"foo": "bar"}{"foo": "x"}' | ./jpp -s foo)
+  echo "$output"
+  [ "$output" == $'\"bar\"\n\"x\"' ]
+}
+
 @test "Can search subexpr expression" {
   output=$(echo '{"foo": {"bar": "baz"}}' | ./jp foo.bar)
   [ "$output" == "\"baz\"" ]
