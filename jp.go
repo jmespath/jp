@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -32,6 +33,10 @@ func main() {
 			Name:   "unquoted, u",
 			Usage:  "If the final result is a string, it will be printed without quotes.",
 			EnvVar: "JP_UNQUOTED",
+		},
+		cli.BoolFlag{
+			Name:  "stream, s",
+			Usage: "Parse JSON elements until the input stream is exhausted (rather than just the first).",
 		},
 		cli.BoolFlag{
 			Name:  "ast",
@@ -82,7 +87,6 @@ func runMain(c *cli.Context) int {
 		fmt.Printf("%s\n", parsed)
 		return 0
 	}
-	var input interface{}
 	var jsonParser *json.Decoder
 	if c.String("filename") != "" {
 		f, err := os.Open(c.String("filename"))
@@ -94,30 +98,38 @@ func runMain(c *cli.Context) int {
 	} else {
 		jsonParser = json.NewDecoder(os.Stdin)
 	}
-	if err := jsonParser.Decode(&input); err != nil {
-		errMsg("Error parsing input json: %s\n", err)
-		return 2
-	}
-	result, err := jmespath.Search(expression, input)
-	if err != nil {
-		if syntaxError, ok := err.(jmespath.SyntaxError); ok {
-			return errMsg("%s\n%s\n",
-				syntaxError,
-				syntaxError.HighlightLocation())
+	for {
+		var input interface{}
+		if err := jsonParser.Decode(&input); err == io.EOF {
+			break
+		} else if err != nil {
+			errMsg("Error parsing input json: %s\n", err)
+			return 2
 		}
-		return errMsg("Error evaluating JMESPath expression: %s", err)
-	}
-	converted, isString := result.(string)
-	if c.Bool("unquoted") && isString {
-		os.Stdout.WriteString(converted)
-	} else {
-		toJSON, err := json.MarshalIndent(result, "", "  ")
+		result, err := jmespath.Search(expression, input)
 		if err != nil {
-			errMsg("Error marshalling result to JSON: %s\n", err)
-			return 3
+			if syntaxError, ok := err.(jmespath.SyntaxError); ok {
+				return errMsg("%s\n%s\n",
+					syntaxError,
+					syntaxError.HighlightLocation())
+			}
+			return errMsg("Error evaluating JMESPath expression: %s", err)
 		}
-		os.Stdout.Write(toJSON)
+		converted, isString := result.(string)
+		if c.Bool("unquoted") && isString {
+			os.Stdout.WriteString(converted)
+		} else {
+			toJSON, err := json.MarshalIndent(result, "", "  ")
+			if err != nil {
+				errMsg("Error marshalling result to JSON: %s\n", err)
+				return 3
+			}
+			os.Stdout.Write(toJSON)
+		}
+		os.Stdout.WriteString("\n")
+		if !c.Bool("stream") {
+			break
+		}
 	}
-	os.Stdout.WriteString("\n")
 	return 0
 }
