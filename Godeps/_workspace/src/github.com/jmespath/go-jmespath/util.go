@@ -23,6 +23,24 @@ func isFalse(value interface{}) bool {
 	case nil:
 		return true
 	}
+	// Try the reflection cases before returning false.
+	rv := reflect.ValueOf(value)
+	switch rv.Kind() {
+	case reflect.Struct:
+		// A struct type will never be false, even if
+		// all of its values are the zero type.
+		return false
+	case reflect.Slice, reflect.Map:
+		return rv.Len() == 0
+	case reflect.Ptr:
+		if rv.IsNil() {
+			return true
+		}
+		// If it's a pointer type, we'll try to deref the pointer
+		// and evaluate the pointer value for isFalse.
+		element := rv.Elem()
+		return isFalse(element.Interface())
+	}
 	return false
 }
 
@@ -48,7 +66,7 @@ func slice(slice []interface{}, parts []sliceParam) ([]interface{}, error) {
 		return nil, err
 	}
 	start, stop, step := computed[0], computed[1], computed[2]
-	result := make([]interface{}, 0, 0)
+	result := []interface{}{}
 	if step > 0 {
 		for i := start; i < stop; i += step {
 			result = append(result, slice[i])
@@ -157,4 +175,11 @@ func toArrayStr(data interface{}) ([]string, bool) {
 		return result, true
 	}
 	return nil, false
+}
+
+func isSliceType(v interface{}) bool {
+	if v == nil {
+		return false
+	}
+	return reflect.TypeOf(v).Kind() == reflect.Slice
 }
