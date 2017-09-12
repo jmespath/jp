@@ -1,4 +1,9 @@
 #!/bin/bash
+if [ -z "$JP_VERSION" ]
+then
+  echo "Must set JP_VERSION env var" 1>&2
+  exit 1
+fi
 go get ./...
 rm -rf ./build/jp-*
 for goos in darwin linux windows freebsd; do
@@ -15,3 +20,9 @@ export GOARCH=arm
 export GOARM=7
 echo "Building for $GOOS/$GOARCH/$GOARM"
 go build -v -o build/jp-$GOOS-$GOARCH-arm$GOARM 2> /dev/null
+# And finally we'll create a .tar.gz version for homebrew users.
+cp build/jp-darwin-amd64 build/jp
+cd build
+tar cvfz jp-$JP_VERSION.tar.gz jp
+rm jp
+cd ..
