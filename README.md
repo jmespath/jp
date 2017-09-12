@@ -21,6 +21,13 @@ brew tap jmespath/jmespath
 brew install jp
 ```
 
+For installing on a 64 bit Linux environment use:
+
+```
+sudo wget https://github.com/jmespath/jp/releases/download/0.1.2/jp-linux-amd64 -O /usr/local/bin/jp \
+&& sudo chmod +x /usr/local/bin/jp
+```
+
 You can download prebuilt binaries if you prefer.
 Check the [Release page](https://github.com/jmespath/jp/releases)
  to download the latest ``jp`` executable.  There are binaries
