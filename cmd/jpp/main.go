@@ -38,10 +38,6 @@ func main() {
 			Usage:  "If the final result is a string, it will be printed without quotes.",
 		},
 		cli.BoolFlag{
-			Name:  "stream, s",
-			Usage: "Parse JSON elements until the input stream is exhausted (rather than just the first).",
-		},
-		cli.BoolFlag{
 			Name:  "ast",
 			Usage: "Only print the AST of the parsed expression.  Do not rely on this output, only useful for debugging purposes.",
 		},
@@ -135,9 +131,6 @@ func runMain(c *cli.Context) int {
 			os.Stdout.Write(toJSON)
 		}
 		os.Stdout.WriteString("\n")
-		if !c.Bool("stream") {
-			break
-		}
 	}
 	return 0
 }

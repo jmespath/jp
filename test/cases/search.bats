@@ -20,7 +20,7 @@
 }
 
 @test "Processes subsequent data in stream mode" {
-  output=$(echo '{"foo": "bar"}{"foo": "x"}' | ./jpp -s foo)
+  output=$(echo '{"foo": "bar"}{"foo": "x"}' | ./jpp foo)
   echo "$output"
   [ "$output" == $'\"bar\"\n\"x\"' ]
 }
