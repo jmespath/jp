@@ -37,6 +37,18 @@
   [ "$output" == '["a","x"]' ]
 }
 
+@test "Test that recursive accumulate mode coalesces duplicates from different nested lists" {
+  output=$(echo '{"foo": ["a", "a"]}{"foo": ["a"]}' | ./jpp -a -c @)
+  echo "$output"
+  [ "$output" == '{"foo":["a","a"]}' ]
+}
+
+@test "Test that recursive accumulate mode preserves duplicates from the same nested list" {
+  output=$(echo '{"foo": ["a", "a"]}{"foo": ["a", "b"]}' | ./jpp -a -c @)
+  echo "$output"
+  [ "$output" == '{"foo":["a","a","b"]}' ]
+}
+
 @test "Can search subexpr expression" {
   output=$(echo '{"foo": {"bar": "baz"}}' | ./jp foo.bar)
   [ "$output" == "\"baz\"" ]

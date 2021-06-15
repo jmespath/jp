@@ -1,17 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"reflect"
 
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
 )
 
-const version = "0.1.3.1"
+const version = "0.1.3.2"
 
 func main() {
 	app := cli.NewApp()
@@ -251,7 +253,9 @@ func merge1(x1, x2 interface{}) interface{} {
 			result = append(result, element)
 		}
 		for _, element := range x1 {
-			result = append(result, element)
+			if !contains(result, element) {
+				result = append(result, element)
+			}
 		}
 		return result
 	case nil:
@@ -264,3 +268,91 @@ func merge1(x1, x2 interface{}) interface{} {
 	return x1
 }
 
+func equal(lhs interface{}, rhs interface{}) bool {
+	switch lhs := lhs.(type) {
+		case nil:
+			switch rhs.(type) {
+				case nil:
+					return true
+			}
+			return false
+
+		case string:
+			switch rhs := rhs.(type) {
+				case string:
+					if lhs == rhs {
+						return true
+					}
+			}
+			return false
+
+		case int:
+			switch rhs := rhs.(type) {
+				case int:
+					if lhs == rhs {
+						return true
+					}
+			}
+			return false
+
+		case float32:
+			switch rhs := rhs.(type) {
+				case float32:
+					if lhs == rhs {
+						return true
+					}
+			}
+			return false
+
+		case float64:
+			switch rhs := rhs.(type) {
+				case float64:
+					if lhs == rhs {
+						return true
+					}
+			}
+			return false
+		default:
+			panic(fmt.Sprintf("unhandled type comparison: %s vs %s", reflect.TypeOf(lhs), reflect.TypeOf(rhs)))
+	}
+}
+
+func contains(values []interface{}, value interface{}) bool {
+
+	valueData, err := json.Marshal(value); if err != nil {
+		panic(err)
+	}
+
+	for _, v := range values {
+		switch v := v.(type) {
+			case map[string]interface{}:
+				switch value.(type) {
+					case map[string]interface{}:
+						data, err := json.Marshal(v); if err != nil {
+							panic(err)
+						}
+						if bytes.Compare(valueData, data) == 0 {
+							return true
+						}
+				}
+
+			case []interface{}:
+				switch value.(type) {
+					case []interface{}:
+						data, err := json.Marshal(v); if err != nil {
+							panic(err)
+						}
+						if bytes.Compare(valueData, data) == 0 {
+							return true
+						}
+				}
+
+			default:
+				if equal(v, value) {
+					return true
+				}
+		}
+	}
+
+	return false
+}
