@@ -34,6 +34,10 @@ func main() {
 			Usage: "Read JMESPath expression from the specified file.",
 		},
 		cli.BoolFlag{
+			Name:   "slurp, s",
+			Usage:  "Read one or more input JSON objects into an array and apply the JMESPath expression to the resulting array.",
+		},
+		cli.BoolFlag{
 			Name:   "unquoted, u",
 			Usage:  "If the final result is a string, it will be printed without quotes.",
 		},
@@ -97,9 +101,26 @@ func runMain(c *cli.Context) int {
 	} else {
 		jsonParser = json.NewDecoder(os.Stdin)
 	}
+
+	var slurpInput []interface{}
+	if c.Bool("slurp") {
+		for {
+			var element interface{}
+			if err := jsonParser.Decode(&element); err == io.EOF {
+				break
+			} else if err != nil {
+				errMsg("Error parsing input json: %s\n", err)
+				return 2
+			}
+			slurpInput = append(slurpInput, element)
+		}
+	}
+
 	for {
 		var input interface{}
-		if err := jsonParser.Decode(&input); err == io.EOF {
+		if c.Bool("slurp") {
+			input = slurpInput
+		} else if err := jsonParser.Decode(&input); err == io.EOF {
 			break
 		} else if err != nil {
 			errMsg("Error parsing input json: %s\n", err)
@@ -131,6 +152,9 @@ func runMain(c *cli.Context) int {
 			os.Stdout.Write(toJSON)
 		}
 		os.Stdout.WriteString("\n")
+		if c.Bool("slurp") {
+			break
+		}
 	}
 	return 0
 }
