@@ -25,6 +25,18 @@
   [ "$output" == $'\"bar\"\n\"x\"' ]
 }
 
+@test "Test recursive accumulate mode for nested lists" {
+  output=$(echo '{"foo": ["a"]}{"foo": ["x"]}' | ./jpp -a -c @)
+  echo "$output"
+  [ "$output" == '{"foo":["a","x"]}' ]
+}
+
+@test "Test recursive accumulate mode for nested lists" {
+  output=$(echo '["a"]["x"]' | ./jpp -a -c @)
+  echo "$output"
+  [ "$output" == '["a","x"]' ]
+}
+
 @test "Can search subexpr expression" {
   output=$(echo '{"foo": {"bar": "baz"}}' | ./jp foo.bar)
   [ "$output" == "\"baz\"" ]
