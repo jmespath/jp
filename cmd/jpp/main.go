@@ -19,7 +19,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "jpp"
 	app.Version = version
-	app.Usage = "jpp [<options>] <expression>"
+	app.Usage = "jpp [<options>] [expression]"
 	app.Author = ""
 	app.Email = ""
 	app.Flags = []cli.Flag{
@@ -77,9 +77,12 @@ func runMain(c *cli.Context) int {
 		}
 	} else {
 		if len(c.Args()) == 0 {
-			return errMsg("Must provide at least one argument.")
+			expression = "@"
+		} else if len(c.Args()) > 1 {
+			return errMsg("Must not provide more than one argument.")
+		} else {
+			expression = c.Args()[0]
 		}
-		expression = c.Args()[0]
 	}
 	if c.Bool("ast") {
 		parser := jmespath.NewParser()
