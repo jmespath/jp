@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -38,6 +39,10 @@ func main() {
 		cli.StringFlag{
 			Name:  "expr-file, e",
 			Usage: "Read JMESPath expression from the specified file.",
+		},
+		cli.BoolFlag{
+			Name:   "read-raw, R",
+			Usage:  "Read raw string input and box it as JSON strings.",
 		},
 		cli.BoolFlag{
 			Name:   "slurp, s",
@@ -100,22 +105,41 @@ func runMain(c *cli.Context) int {
 		return 0
 	}
 	var jsonParser *json.Decoder
+	var f *os.File
+	var  rawInput *bufio.Scanner
+	var rawInputBuffer []byte
 	if c.String("filename") != "" {
-		f, err := os.Open(c.String("filename"))
+		var err error
+		f, err = os.Open(c.String("filename"))
 		if err != nil {
 			return errMsg("Error opening input file: %s", err)
 		}
-		jsonParser = json.NewDecoder(f)
-
 	} else {
-		jsonParser = json.NewDecoder(os.Stdin)
+		f = os.Stdin
+	}
+
+	if c.Bool("read-raw") && c.Bool("slurp") {
+		var err error
+		rawInputBuffer, err = ioutil.ReadAll(f)
+		if err != nil {
+			return errMsg("Error reading input file: %s", err)
+		}
+	} else if c.Bool("read-raw") {
+		 rawInput = bufio.NewScanner(f)
+	} else {
+		jsonParser = json.NewDecoder(f)
 	}
 
 	var slurpInput []interface{}
-	if c.Bool("slurp") {
+	if c.Bool("slurp") && !c.Bool("read-raw") {
 		for {
 			var element interface{}
-			if err := jsonParser.Decode(&element); err == io.EOF {
+			if  rawInput != nil {
+				if !rawInput.Scan() {
+					break
+				}
+				element =  rawInput.Text()
+			} else if err := jsonParser.Decode(&element); err == io.EOF {
 				break
 			} else if err != nil {
 				errMsg("Error parsing input json: %s\n", err)
@@ -134,7 +158,18 @@ func runMain(c *cli.Context) int {
 			var input interface{}
 			var err error
 			if c.Bool("slurp") {
-				input = slurpInput
+				eof = true
+				if c.Bool("read-raw") {
+					input = string(rawInputBuffer)
+				} else {
+					input = slurpInput
+				}
+			} else if  rawInput != nil {
+				if !rawInput.Scan() {
+					eof = true
+					break
+				}
+				input =  rawInput.Text()
 			} else if err = jsonParser.Decode(&input); err == io.EOF {
 				eof = true
 				break
@@ -161,6 +196,9 @@ func runMain(c *cli.Context) int {
 						return 2
 					}
 				}
+				if c.Bool("slurp") {
+					break
+				}
 			} else {
 				break
 			}
@@ -168,7 +206,7 @@ func runMain(c *cli.Context) int {
 
 		if c.Bool("accumulate") {
 			result = accumulator
-		} else if eof {
+		} else if eof && !c.Bool("slurp") {
 			break
 		}
 

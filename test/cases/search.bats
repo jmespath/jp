@@ -49,6 +49,24 @@
   [ "$output" == '{"foo":["a","a","b"]}' ]
 }
 
+@test "Test raw string input" {
+  output=$(echo 'hello world' | ./jpp -R -a -c @)
+  echo "$output"
+  [ "$output" == '"hello world"' ]
+}
+
+@test "Test multi-line raw string input" {
+  output=$(printf -- '%s\n' 'line '{1..3} | ./jpp -R -c @)
+  echo "$output"
+  [ "$output" == $'"line 1"\n"line 2"\n"line 3"\n' ]
+}
+
+@test "Test multi-line raw string input slurp" {
+  output=$(printf -- '%s\n' 'line '{1..3} | ./jpp -R -s -c @)
+  echo "$output"
+  [ "$output" == '"line 1\nline 2\nline 3\n"' ]
+}
+
 @test "Can search subexpr expression" {
   output=$(echo '{"foo": {"bar": "baz"}}' | ./jp foo.bar)
   [ "$output" == "\"baz\"" ]
