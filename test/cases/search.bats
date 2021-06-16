@@ -55,6 +55,18 @@
   [ "$output" == '"hello world"' ]
 }
 
+@test "Test raw string input" {
+  output=$(echo 'hello world' | ./jpp -R -r @)
+  echo "$output"
+  [ "$output" == 'hello world' ]
+}
+
+@test "Test raw string input" {
+  output=$(echo 'hello world' | ./jpp -R -u @)
+  echo "$output"
+  [ "$output" == 'hello world' ]
+}
+
 @test "Test multi-line raw string input" {
   output=$(printf -- '%s\n' 'line '{1..3} | ./jpp -R -c @)
   echo "$output"

@@ -14,7 +14,7 @@ import (
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
 )
 
-const version = "0.1.3.2"
+const version = "0.1.3.3"
 
 func main() {
 	app := cli.NewApp()
@@ -39,6 +39,10 @@ func main() {
 		cli.StringFlag{
 			Name:  "expr-file, e",
 			Usage: "Read JMESPath expression from the specified file.",
+		},
+		cli.BoolFlag{
+			Name:   "raw, r",
+			Usage:  "If the final result is a string, it will be printed without quotes (an alias for unquoted).",
 		},
 		cli.BoolFlag{
 			Name:   "read-raw, R",
@@ -211,7 +215,8 @@ func runMain(c *cli.Context) int {
 		}
 
 		converted, isString := result.(string)
-		if c.Bool("unquoted") && isString {
+		quoted := ! ((c.Bool("unquoted") || c.Bool("raw")) && isString)
+		if !quoted {
 			os.Stdout.WriteString(converted)
 		} else {
 			var toJSON []byte
