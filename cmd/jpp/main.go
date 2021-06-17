@@ -14,7 +14,7 @@ import (
 	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
 )
 
-const version = "0.1.3.4"
+const version = "0.1.3.5"
 
 func main() {
 	app := cli.NewApp()
@@ -214,33 +214,28 @@ func runMain(c *cli.Context) int {
 			break
 		}
 
-		converted, isString := result.(string)
-		quoted := ! (c.Bool("raw-output") && isString)
-		if !quoted {
-			os.Stdout.WriteString(converted)
-		} else {
 
-			var unboxed bool
-			if c.Bool("unbox") {
-				switch result := result.(type) {
-					case []interface{}:
-						unboxed = true
-						for _, element := range result {
-							if err := outputResult(c, element); err != nil {
-								errMsg("Error marshalling result to JSON: %s\n", err)
-								return 3
-							}
+		var unboxed bool
+		if c.Bool("unbox") {
+			switch result := result.(type) {
+				case []interface{}:
+					unboxed = true
+					for _, element := range result {
+						if err := outputResult(c, element); err != nil {
+							errMsg("Error marshalling result to JSON: %s\n", err)
+							return 3
 						}
-				}
-			}
- 
-			if !unboxed {
-				if err := outputResult(c, result); err != nil {
-					errMsg("Error marshalling result to JSON: %s\n", err)
-					return 3
-				}
+					}
 			}
 		}
+
+		if !unboxed {
+			if err := outputResult(c, result); err != nil {
+				errMsg("Error marshalling result to JSON: %s\n", err)
+				return 3
+			}
+		}
+
 		if eof || c.Bool("accumulate") || c.Bool("slurp") {
 			break
 		}
@@ -249,17 +244,23 @@ func runMain(c *cli.Context) int {
 }
 
 func outputResult(c *cli.Context, result interface{}) error {
-	var toJSON []byte
-	var err error
-	if c.Bool("compact") {
-		toJSON, err = json.Marshal(result)
+	converted, isString := result.(string)
+	quoted := ! (c.Bool("raw-output") && isString)
+	if quoted {
+		var toJSON []byte
+		var err error
+		if c.Bool("compact") {
+			toJSON, err = json.Marshal(result)
+		} else {
+			toJSON, err = json.MarshalIndent(result, "", "  ")
+		}
+		if err != nil {
+			return err
+		}
+		os.Stdout.Write(toJSON)
 	} else {
-		toJSON, err = json.MarshalIndent(result, "", "  ")
+		os.Stdout.WriteString(converted)
 	}
-	if err != nil {
-		return err
-	}
-	os.Stdout.Write(toJSON)
 	os.Stdout.WriteString("\n")
 	return nil
 }
