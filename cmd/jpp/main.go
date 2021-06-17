@@ -10,11 +10,11 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
+	"github.com/jmespath/go-jmespath"
+	"github.com/urfave/cli"
 )
 
-const version = "0.1.3.5"
+const version = "0.1.3.6"
 
 func main() {
 	app := cli.NewApp()
