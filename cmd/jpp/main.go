@@ -11,63 +11,107 @@ import (
 	"reflect"
 
 	"github.com/jmespath/go-jmespath"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 )
 
-const version = "0.1.3.6"
+const version = "0.1.3.7"
 
-func main() {
-	app := cli.NewApp()
-	app.Name = "jpp"
-	app.Version = version
-	app.Usage = "jpp [<options>] [expression]"
-	app.Author = ""
-	app.Email = ""
-	app.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:   "accumulate, a",
-			Usage:  "Accumulate all output objects into a single recursively merged output object.",
-		},
-		cli.BoolFlag{
-			Name:   "compact, c",
-			Usage:  "Produce compact JSON output that omits nonessential whitespace.",
-		},
-		cli.StringFlag{
-			Name:  "filename, f",
-			Usage: "Read input JSON from a file instead of stdin.",
-		},
-		cli.StringFlag{
-			Name:  "expr-file, e",
-			Usage: "Read JMESPath expression from the specified file.",
-		},
-		cli.BoolFlag{
-			Name:   "raw-output, r",
-			Usage:  "If the final result is a string, it will be printed without quotes.",
-		},
-		cli.BoolFlag{
-			Name:   "raw-input, R",
-			Usage:  "Read raw string input and box it as JSON strings.",
-		},
-		cli.BoolFlag{
-			Name:   "slurp, s",
-			Usage:  "Read one or more input JSON objects into an array and apply the JMESPath expression to the resulting array.",
-		},
-		cli.BoolFlag{
-			Name:   "unbox, u",
-			Usage:  "If the final result is a list, unbox it into a stream of output objects that is suitable for consumption by --slurp mode.",
-		},
-		cli.BoolFlag{
-			Name:  "ast",
-			Usage: "Only print the AST of the parsed expression.  Do not rely on this output, only useful for debugging purposes.",
-		},
-	}
-	app.Action = runMainAndExit
-
-	app.Run(os.Args)
+type JppConfig struct {
+	Accumulate bool `json:"accumulate"`
+	Ast bool `json:"ast"`
+	Compact bool `json:"compact"`
+	ExprFile string `json:"expr-file"`
+	Filename string `json:"filename"`
+	RawInput bool `json:"raw-input"`
+	RawOutput bool `json:"raw-output"`
+	Slurp bool `json:"slurp"`
+	Unbox bool `json:"unbox"`
 }
 
-func runMainAndExit(c *cli.Context) {
-	os.Exit(runMain(c))
+func JppCommand() *cobra.Command {
+	var jppCmd = &cobra.Command{
+		Use:   "jpp [<options>] [expression]",
+		Short: "An extended superset of the jp CLI for JMESPath",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: JppCobraLaunchMain,
+	}
+
+	flags := jppCmd.PersistentFlags()
+
+	flags.BoolP(
+		"accumulate",
+		"a",
+		false,
+		"Accumulate all output objects into a single recursively merged output object.",
+	)
+	flags.Bool(
+		"ast",
+		false,
+		"Only print the AST of the parsed expression.  Do not rely on this output, only useful for debugging purposes.",
+	)
+	flags.BoolP(
+		"compact",
+		"c",
+		false,
+		"Produce compact JSON output that omits nonessential whitespace.",
+	)
+	flags.StringP(
+		"filename",
+		"f",
+		"",
+		"Read input JSON from a file instead of stdin.",
+	)
+	flags.StringP(
+		"expr-file",
+		"e",
+		"",
+		"Read JMESPath expression from the specified file.",
+	)
+	flags.BoolP(
+		"raw-output",
+		"r",
+		false,
+		"If the final result is a string, it will be printed without quotes (an alias for --unquoted).",
+	)
+	flags.BoolP(
+		"raw-input",
+		"R",
+		false,
+		"Read raw string input and box it as JSON strings.",
+	)
+	flags.BoolP(
+		"slurp",
+		"s",
+		false,
+		"Read one or more input JSON objects into an array and apply the JMESPath expression to the resulting array.",
+	)
+	flags.BoolP(
+		"unbox",
+		"u",
+		false,
+		"If the final result is a list, unbox it into a stream of output objects that is suitable for consumption by --slurp mode.",
+	)
+	flags.Bool(
+		"unquoted",
+		false,
+		"If the final result is a string, it will be printed without quotes.",
+	)
+	flags.BoolP(
+		"help",
+		"h",
+		false,
+		"show usage and exit",
+	)
+
+	return jppCmd
+}
+
+func main() {
+	jppCmd := JppCommand()
+	jppCmd.SetArgs(os.Args[1:])
+	if err := jppCmd.Execute(); err != nil {
+		os.Exit(errMsg(err.Error()))
+	}
 }
 
 func errMsg(msg string, a ...interface{}) int {
@@ -76,66 +120,97 @@ func errMsg(msg string, a ...interface{}) int {
 	return 1
 }
 
-func runMain(c *cli.Context) int {
+func MustGetString(cmd *cobra.Command, name string) string {
+	value, err := cmd.Flags().GetString(name)
+	if err != nil {
+		panic(err)
+	}
+	return value
+}
+
+func MustGetBool(cmd *cobra.Command, name string) bool {
+	value, err := cmd.Flags().GetBool(name)
+	if err != nil {
+		panic(err)
+	}
+	return value
+}
+
+func JppCobraLaunchMain(cmd *cobra.Command, args []string) error {
+	config := &JppConfig{
+		MustGetBool(cmd, "accumulate"),
+		MustGetBool(cmd, "ast"),
+		MustGetBool(cmd, "compact"),
+		MustGetString(cmd, "expr-file"),
+		MustGetString(cmd, "filename"),
+		MustGetBool(cmd, "raw-input"),
+		MustGetBool(cmd, "raw-output") || MustGetBool(cmd, "unquoted"),
+		MustGetBool(cmd, "slurp"),
+		MustGetBool(cmd, "unbox"),
+	}
+	return JppMain(config, args)
+}
+
+func JppMain(config *JppConfig, args []string) error {
 	var expression string
-	if c.String("expr-file") != "" {
-		byteExpr, err := ioutil.ReadFile(c.String("expr-file"))
+	if config.ExprFile != "" {
+		byteExpr, err := ioutil.ReadFile(config.ExprFile)
 		expression = string(byteExpr)
 		if err != nil {
-			return errMsg("Error opening expression file: %s", err)
+			return fmt.Errorf("Error opening expression file: %w", err)
 		}
 	} else {
-		if len(c.Args()) == 0 {
+		if len(args) == 0 {
 			expression = "@"
-		} else if len(c.Args()) > 1 {
-			return errMsg("Must not provide more than one argument.")
+		} else if len(args) > 1 {
+			return fmt.Errorf("Must not provide more than one argument.")
 		} else {
-			expression = c.Args()[0]
+			expression = args[0]
 		}
 	}
-	if c.Bool("ast") {
+	if config.Ast {
 		parser := jmespath.NewParser()
 		parsed, err := parser.Parse(expression)
 		if err != nil {
 			if syntaxError, ok := err.(jmespath.SyntaxError); ok {
-				return errMsg("%s\n%s\n",
+				fmt.Errorf("%s\n%s\n",
 					syntaxError,
 					syntaxError.HighlightLocation())
 			}
-			return errMsg("%s", err)
+			return err
 		}
 		fmt.Println("")
 		fmt.Printf("%s\n", parsed)
-		return 0
+		return nil
 	}
 	var jsonParser *json.Decoder
 	var f *os.File
 	var  rawInput *bufio.Scanner
 	var rawInputBuffer []byte
-	if c.String("filename") != "" {
+	if config.Filename != "" {
 		var err error
-		f, err = os.Open(c.String("filename"))
+		f, err = os.Open(config.Filename)
 		if err != nil {
-			return errMsg("Error opening input file: %s", err)
+			fmt.Errorf("Error opening input file: %w", err)
 		}
 	} else {
 		f = os.Stdin
 	}
 
-	if c.Bool("raw-input") && c.Bool("slurp") {
+	if config.RawInput && config.Slurp {
 		var err error
 		rawInputBuffer, err = ioutil.ReadAll(f)
 		if err != nil {
-			return errMsg("Error reading input file: %s", err)
+			fmt.Errorf("Error reading input file: %w", err)
 		}
-	} else if c.Bool("raw-input") {
+	} else if config.RawInput {
 		 rawInput = bufio.NewScanner(f)
 	} else {
 		jsonParser = json.NewDecoder(f)
 	}
 
 	var slurpInput []interface{}
-	if c.Bool("slurp") && !c.Bool("raw-input") {
+	if config.Slurp && !config.RawInput {
 		for {
 			var element interface{}
 			if  rawInput != nil {
@@ -146,8 +221,7 @@ func runMain(c *cli.Context) int {
 			} else if err := jsonParser.Decode(&element); err == io.EOF {
 				break
 			} else if err != nil {
-				errMsg("Error parsing input json: %s\n", err)
-				return 2
+				return fmt.Errorf("Error parsing input json: %w", err)
 			}
 			slurpInput = append(slurpInput, element)
 		}
@@ -161,9 +235,9 @@ func runMain(c *cli.Context) int {
 		for {
 			var input interface{}
 			var err error
-			if c.Bool("slurp") {
+			if config.Slurp {
 				eof = true
-				if c.Bool("raw-input") {
+				if config.RawInput {
 					input = string(rawInputBuffer)
 				} else {
 					input = slurpInput
@@ -178,29 +252,27 @@ func runMain(c *cli.Context) int {
 				eof = true
 				break
 			} else if err != nil {
-				errMsg("Error parsing input json: %s\n", err)
-				return 2
+				return fmt.Errorf("Error parsing input json: %w", err)
 			}
 			result, err = jmespath.Search(expression, input)
 			if err != nil {
 				if syntaxError, ok := err.(jmespath.SyntaxError); ok {
-					return errMsg("%s\n%s\n",
+					return fmt.Errorf("%s\n%s\n",
 						syntaxError,
 						syntaxError.HighlightLocation())
 				}
-				return errMsg("Error evaluating JMESPath expression: %s", err)
+				return fmt.Errorf("Error evaluating JMESPath expression: %w", err)
 			}
 
-			if c.Bool("accumulate") {
+			if config.Accumulate {
 				if accumulator == nil {
 					accumulator = result
 				} else {
 					accumulator, err = merge(result, accumulator); if err != nil {
-						errMsg("Error merging output json: %s\n", err)
-						return 2
+						return fmt.Errorf("Error merging output json: %w", err)
 					}
 				}
-				if c.Bool("slurp") {
+				if config.Slurp {
 					break
 				}
 			} else {
@@ -208,48 +280,45 @@ func runMain(c *cli.Context) int {
 			}
 		}
 
-		if c.Bool("accumulate") {
+		if config.Accumulate {
 			result = accumulator
-		} else if eof && !c.Bool("slurp") {
+		} else if eof && !config.Slurp {
 			break
 		}
 
-
 		var unboxed bool
-		if c.Bool("unbox") {
+		if config.Unbox {
 			switch result := result.(type) {
 				case []interface{}:
 					unboxed = true
 					for _, element := range result {
-						if err := outputResult(c, element); err != nil {
-							errMsg("Error marshalling result to JSON: %s\n", err)
-							return 3
+						if err := OutputResult(element, config); err != nil {
+							return fmt.Errorf("Error marshalling result to JSON: %w", err)
 						}
 					}
 			}
 		}
 
 		if !unboxed {
-			if err := outputResult(c, result); err != nil {
-				errMsg("Error marshalling result to JSON: %s\n", err)
-				return 3
+			if err := OutputResult(result, config); err != nil {
+				return fmt.Errorf("Error marshalling result to JSON: %w", err)
 			}
 		}
 
-		if eof || c.Bool("accumulate") || c.Bool("slurp") {
+		if eof || config.Accumulate || config.Slurp {
 			break
 		}
 	}
-	return 0
+	return nil
 }
 
-func outputResult(c *cli.Context, result interface{}) error {
+func OutputResult(result interface{}, config *JppConfig) error {
 	converted, isString := result.(string)
-	quoted := ! (c.Bool("raw-output") && isString)
+	quoted := ! (config.RawOutput && isString)
 	if quoted {
 		var toJSON []byte
 		var err error
-		if c.Bool("compact") {
+		if config.Compact {
 			toJSON, err = json.Marshal(result)
 		} else {
 			toJSON, err = json.MarshalIndent(result, "", "  ")

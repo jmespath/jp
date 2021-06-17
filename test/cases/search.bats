@@ -68,7 +68,7 @@
 }
 
 @test "Test raw string input" {
-  output=$(echo 'hello world' | ./jpp -R -u @)
+  output=$(echo 'hello world' | ./jpp -R --unquoted @)
   echo "$output"
   [ "$output" == 'hello world' ]
 }
