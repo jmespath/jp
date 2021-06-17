@@ -37,6 +37,12 @@
   [ "$output" == '["a","x"]' ]
 }
 
+@test "Test recursive accumulate mode for nested lists" {
+  output=$(echo '["a"]["x"]' | ./jpp -a -c -u @)
+  echo "$output"
+  [ "$output" == $'"a"\n"x"' ]
+}
+
 @test "Test that recursive accumulate mode coalesces duplicates from different nested lists" {
   output=$(echo '{"foo": ["a", "a"]}{"foo": ["a"]}' | ./jpp -a -c @)
   echo "$output"

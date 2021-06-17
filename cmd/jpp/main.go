@@ -42,7 +42,7 @@ func main() {
 		},
 		cli.BoolFlag{
 			Name:   "raw, r",
-			Usage:  "If the final result is a string, it will be printed without quotes (an alias for unquoted).",
+			Usage:  "If the final result is a string, it will be printed without quotes.",
 		},
 		cli.BoolFlag{
 			Name:   "raw-input, R",
@@ -53,8 +53,8 @@ func main() {
 			Usage:  "Read one or more input JSON objects into an array and apply the JMESPath expression to the resulting array.",
 		},
 		cli.BoolFlag{
-			Name:   "unquoted, u",
-			Usage:  "If the final result is a string, it will be printed without quotes.",
+			Name:   "unbox, u",
+			Usage:  "If the final result is a list, unbox it into a stream of output objects that is suitable for consumption by --slurp mode.",
 		},
 		cli.BoolFlag{
 			Name:  "ast",
@@ -215,29 +215,53 @@ func runMain(c *cli.Context) int {
 		}
 
 		converted, isString := result.(string)
-		quoted := ! ((c.Bool("unquoted") || c.Bool("raw")) && isString)
+		quoted := ! (c.Bool("raw") && isString)
 		if !quoted {
 			os.Stdout.WriteString(converted)
 		} else {
-			var toJSON []byte
-			var err error
-			if c.Bool("compact") {
-				toJSON, err = json.Marshal(result)
-			} else {
-				toJSON, err = json.MarshalIndent(result, "", "  ")
+
+			var unboxed bool
+			if c.Bool("unbox") {
+				switch result := result.(type) {
+					case []interface{}:
+						unboxed = true
+						for _, element := range result {
+							if err := outputResult(c, element); err != nil {
+								errMsg("Error marshalling result to JSON: %s\n", err)
+								return 3
+							}
+						}
+				}
 			}
-			if err != nil {
-				errMsg("Error marshalling result to JSON: %s\n", err)
-				return 3
+ 
+			if !unboxed {
+				if err := outputResult(c, result); err != nil {
+					errMsg("Error marshalling result to JSON: %s\n", err)
+					return 3
+				}
 			}
-			os.Stdout.Write(toJSON)
 		}
-		os.Stdout.WriteString("\n")
 		if eof || c.Bool("accumulate") || c.Bool("slurp") {
 			break
 		}
 	}
 	return 0
+}
+
+func outputResult(c *cli.Context, result interface{}) error {
+	var toJSON []byte
+	var err error
+	if c.Bool("compact") {
+		toJSON, err = json.Marshal(result)
+	} else {
+		toJSON, err = json.MarshalIndent(result, "", "  ")
+	}
+	if err != nil {
+		return err
+	}
+	os.Stdout.Write(toJSON)
+	os.Stdout.WriteString("\n")
+	return nil
 }
 
 // The following merge and merge1 functions come from the
