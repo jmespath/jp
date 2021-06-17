@@ -45,7 +45,7 @@ func main() {
 			Usage:  "If the final result is a string, it will be printed without quotes (an alias for unquoted).",
 		},
 		cli.BoolFlag{
-			Name:   "read-raw, R",
+			Name:   "raw-input, R",
 			Usage:  "Read raw string input and box it as JSON strings.",
 		},
 		cli.BoolFlag{
@@ -122,20 +122,20 @@ func runMain(c *cli.Context) int {
 		f = os.Stdin
 	}
 
-	if c.Bool("read-raw") && c.Bool("slurp") {
+	if c.Bool("raw-input") && c.Bool("slurp") {
 		var err error
 		rawInputBuffer, err = ioutil.ReadAll(f)
 		if err != nil {
 			return errMsg("Error reading input file: %s", err)
 		}
-	} else if c.Bool("read-raw") {
+	} else if c.Bool("raw-input") {
 		 rawInput = bufio.NewScanner(f)
 	} else {
 		jsonParser = json.NewDecoder(f)
 	}
 
 	var slurpInput []interface{}
-	if c.Bool("slurp") && !c.Bool("read-raw") {
+	if c.Bool("slurp") && !c.Bool("raw-input") {
 		for {
 			var element interface{}
 			if  rawInput != nil {
@@ -163,7 +163,7 @@ func runMain(c *cli.Context) int {
 			var err error
 			if c.Bool("slurp") {
 				eof = true
-				if c.Bool("read-raw") {
+				if c.Bool("raw-input") {
 					input = string(rawInputBuffer)
 				} else {
 					input = slurpInput
