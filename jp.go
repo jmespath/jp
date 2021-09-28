@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/jmespath/jp/Godeps/_workspace/src/github.com/jmespath/go-jmespath"
+	"github.com/urfave/cli"
+	"github.com/jmespath/go-jmespath"
 )
 
 const version = "0.1.3"
