@@ -20,6 +20,11 @@ export GOARCH=arm
 export GOARM=7
 echo "Building for $GOOS/$GOARCH/$GOARM"
 go build -v -o build/jp-$GOOS-$GOARCH-arm$GOARM 2> /dev/null
+# Also build for ARM64/linux
+export GOOS=linux
+export GOARCH=arm64
+echo "Building for $GOOS/$GOARCH"
+go build -v -o build/jp-$GOOS-$GOARCH 2> /dev/null
 # And finally we'll create a .tar.gz version for homebrew users.
 cp build/jp-darwin-amd64 build/jp
 cd build
