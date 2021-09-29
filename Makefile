@@ -1,8 +1,10 @@
 JP_VERSION=""
 
-help:
-	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  test     to run all the tests."
+
+all: build test
+
+build:
+	go build ./...
 
 test:
 	# CLI specific test cases.
@@ -31,4 +33,4 @@ new-release:
 	scripts/build-all-platforms
 	scripts/sign-all
 
-.PHONY: help test
+.PHONY: help test build
