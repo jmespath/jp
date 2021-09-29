@@ -16,9 +16,8 @@ $ echo '{"foo": {"bar": ["a", "b", "c"]}}' | jp foo.bar[1]
 If you're a Mac user, you can install via homebrew from the JMESPath
 Homebrew tap:
 
-```
-brew tap jmespath/jmespath
-brew install jp
+```sh
+$ brew install jmespath/jmespath/jp
 ```
 
 You can download prebuilt binaries if you prefer.
