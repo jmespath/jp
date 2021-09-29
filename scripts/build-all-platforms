@@ -6,6 +6,7 @@ then
 fi
 go get ./...
 rm -rf ./build/jp-*
+# All builds for 386/amd64.
 for goos in darwin linux windows freebsd; do
 	export GOOS="$goos"
 	for goarch in 386 amd64; do
@@ -14,18 +15,22 @@ for goos in darwin linux windows freebsd; do
 		go build -v -o build/jp-$GOOS-$GOARCH 2>/dev/null
 	done
 done
-# Also build for ARM7/linux
-export GOOS=linux
+# Now handle ARM builds.
+# First handle 32bit builds separately
 export GOARCH=arm
 export GOARM=7
+export GOOS=linux
 echo "Building for $GOOS/$GOARCH/$GOARM"
 go build -v -o build/jp-$GOOS-$GOARCH-arm$GOARM 2> /dev/null
-# Also build for ARM64/linux
-export GOOS=linux
+# Now handled supported ARM64 builds.
 export GOARCH=arm64
-echo "Building for $GOOS/$GOARCH"
-go build -v -o build/jp-$GOOS-$GOARCH 2> /dev/null
+for goos in linux darwin; do
+	export GOOS="$goos"
+	echo "Building for $GOOS/$GOARCH"
+	go build -v -o build/jp-$GOOS-$GOARCH 2>/dev/null
+done
 # And finally we'll create a .tar.gz version for homebrew users.
+# We'll neend to figure out how to deal with M1 macbooks in the future.
 cp build/jp-darwin-amd64 build/jp
 cd build
 tar cvfz jp-$JP_VERSION.tar.gz jp
