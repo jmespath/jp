@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """JMESPath compliance test runner.
 
 This is a test runner that will run the JMESPath compliance tests against a
@@ -53,14 +53,8 @@ import os
 import subprocess
 import json
 import shlex
-
-
-if sys.version_info[:2] == (2, 6):
-    import simplejson as json
-    from ordereddict import OrderedDict
-else:
-    import json
-    from collections import OrderedDict
+import json
+from collections import OrderedDict
 
 
 _abs = os.path.abspath
@@ -137,16 +131,18 @@ class ComplianceTestRunner(object):
             process = subprocess.Popen(command, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
                                        stdin=subprocess.PIPE)
-        except Exception, e:
+        except Exception as e:
             raise RuntimeError('Could not execute test executable "%s": '
                                '%s' % (' '.join(command), e))
-        process.stdin.write(json.dumps(test_case['given']))
+        process.stdin.write(json.dumps(test_case['given']).encode('utf-8'))
         process.stdin.flush()
         stdout, stderr = process.communicate()
+        stdout = stdout.decode('utf-8')
+        stderr = stderr.decode('utf-8')
         if 'result' in test_case:
             try:
                 actual = json.loads(stdout)
-            except:
+            except Exception:
                 actual = stdout
             expected = test_case['result']
             if not actual == expected:
@@ -271,7 +267,8 @@ def main():
     else:
         try:
             runner.run_tests(args.stop_first_fail)
-        except Exception, e:
+        except Exception as e:
+            raise
             sys.stderr.write(str(e))
             sys.stderr.write("\n")
             return 1
