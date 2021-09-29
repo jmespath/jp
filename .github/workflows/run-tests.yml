@@ -18,3 +18,18 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Build and test
       run: make
+  build-all-platforms:
+    name: Build all platforms
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+        go-version: [1.17]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Build all supported platforms
+      run: JP_VERSION=100.100.100 ./scripts/build-all-platforms
