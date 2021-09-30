@@ -10,7 +10,7 @@ import (
 	"github.com/jmespath/go-jmespath"
 )
 
-const version = "0.2.0"
+const version = "0.2.1"
 
 func main() {
 	app := cli.NewApp()
