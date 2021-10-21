@@ -17,7 +17,7 @@ If you're a Mac user, you can install via homebrew from the JMESPath
 Homebrew tap:
 
 ```sh
-$ brew install jmespath/jmespath/jp
+brew install jmespath/jmespath/jp
 ```
 
 You can download prebuilt binaries if you prefer.
@@ -27,7 +27,7 @@ available for Windows, Linux, Mac, FreeBSD.
 
 For example, to install the latest version on a 64 bit Linux environment use:
 
-```
+```sh
 sudo wget https://github.com/jmespath/jp/releases/latest/download/jp-linux-amd64 \
   -O /usr/local/bin/jp  && sudo chmod +x /usr/local/bin/jp            
 ```
@@ -39,7 +39,7 @@ If you have a Go environment installed you can also run:
 of jmespath.  If you have the repo checked out locally you can also
 just ``go build`` the project:
 
-```
+```sh
 git clone git://github.com/jmespath/jp
 cd jp
 go build
@@ -51,7 +51,7 @@ have a workspace/GOPATH configured, you can just run
 ``scripts/build-self-contained`` and it will build the
 ``jp`` executable for you:
 
-```
+```sh
 git clone git://github.com/jmespath/jp
 cd jp
 scripts/build-self-contained
@@ -108,16 +108,16 @@ trying to use this with other commands that just want
 the string and *not* the quoted string.  For example:
 
 
-```
-$ curl -s https://api.github.com/repos/golang/go/events | jp [0].actor.url
+```sh
+curl -s https://api.github.com/repos/golang/go/events | jp [0].actor.url
 "https://api.github.com/users/robpike"
 ```
 
 Now let's suppose we want to then curl the above URL.  Our first
 attempt might look something like this:
 
-```
-$ curl $(curl -s https://api.github.com/repos/golang/go/events | ./jp [0].actor.url)
+```sh
+curl $(curl -s https://api.github.com/repos/golang/go/events | ./jp [0].actor.url)
 ```
 
 And it would fail with:
@@ -130,17 +130,17 @@ To fix this, we can use the ``-u/--unquoted`` option to specify that
 any result that is a string will be printed without quotes.  Note
 that the result is not surrounded by double quotes:
 
-```
-$ curl -s https://api.github.com/repos/golang/go/events | jp --unquoted [0].actor.url
+```sh
+curl -s https://api.github.com/repos/golang/go/events | jp --unquoted [0].actor.url
 https://api.github.com/users/robpike
 ```
 
 If this is a common enough occurance for you, you can set the ``JP_UNQUOTED`` environment
 variable to make this the default behavior:
 
-```
-$ export JP_UNQUOTED=true
-$ curl -s https://api.github.com/repos/golang/go/events | jp --unquoted [0].actor.url
+```sh
+export JP_UNQUOTED=true
+curl -s https://api.github.com/repos/golang/go/events | jp --unquoted [0].actor.url
 https://api.github.com/users/robpike
 ```
 
