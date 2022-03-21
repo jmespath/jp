@@ -250,7 +250,7 @@ go-jmespath library, which is a dependency of this project.  ``go-jmespath``
 has extensive testing to ensure it is parsing and evaluating JMESPath
 expressions correctly.
 
-To ensure that there are no regressions between `go-imespath` and `jp`,
+To ensure that there are no regressions between `go-jmespath` and `jp`,
 the entire suite of [JMESPath compliance tests](https://github.com/jmespath/jmespath.test)
 are run against the `jp` executable.
 
