@@ -20,6 +20,12 @@ Homebrew tap:
 brew install jmespath/jmespath/jp
 ```
 
+If you're a Windows user, you can install via [Scoop](http://scoop.sh/):
+
+```Batchfile
+scoop install jp
+```
+
 You can download prebuilt binaries if you prefer.
 Check the [Release page](https://github.com/jmespath/jp/releases)
  to download the latest ``jp`` executable.  There are binaries
