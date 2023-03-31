@@ -1,0 +1,29 @@
+name: Labels workflow
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  comments-for-labels:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: 'write'
+    steps:
+      - name: Comment on labeled pull request
+        if: ${{ github.event.label.name == 'needs-tests' }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const { number, labels } = context.payload.pull_request;
+            const message = 'Thanks for the pull request! ' +
+              'Before we can merge this, we require tests to be added.  ' +
+              'This helps us maintain the quality of the codebase and ' +
+              'ensures we don\'t regress on this change in the future.  ' +
+              'See our contributing guidelines for ' +
+              'more details.  Let us know if you have any questions, and ' +
+              'thanks again for the pull request!';
+            await github.rest.issues.createComment({
+                owner, repo, issue_number: number, body: message});
