@@ -29,18 +29,18 @@ For example, to install the latest version on a 64 bit Linux environment use:
 
 ```sh
 sudo wget https://github.com/jmespath/jp/releases/latest/download/jp-linux-amd64 \
-  -O /usr/local/bin/jp  && sudo chmod +x /usr/local/bin/jp            
+  -O /usr/local/bin/jp  && sudo chmod +x /usr/local/bin/jp
 ```
 
 ## Building from Source
 
 If you have a Go environment installed you can also run:
-``go get -u github.com/jmespath/jp`` to get the latest version
+``go install github.com/jmespath/jp@latest`` to get the latest version
 of jmespath.  If you have the repo checked out locally you can also
 just ``go build`` the project:
 
 ```sh
-git clone git://github.com/jmespath/jp
+git clone https://github.com/jmespath/jp.git
 cd jp
 go build
 ./jp --help
@@ -52,7 +52,7 @@ have a workspace/GOPATH configured, you can just run
 ``jp`` executable for you:
 
 ```sh
-git clone git://github.com/jmespath/jp
+git clone https://github.com/jmespath/jp.git
 cd jp
 scripts/build-self-contained
 ./jp --help
